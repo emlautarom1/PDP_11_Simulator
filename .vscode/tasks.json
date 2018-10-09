@@ -11,7 +11,8 @@
         {
             "label": "Keyboard Setup",
             "type": "shell",
-            "command": "setxkbmap es,apl -option grp:win_switch"
+            "command": "setxkbmap us,apl -option grp:win_switch",
+            "problemMatcher": []
         }
     ]
 }

@@ -1198,7 +1198,7 @@ ind[Spec, Invop]←0
 ⍝ @Test: ADD - index + displacement
 ∇ test_add_index_displ
     ⍝ Load instrucction
-    (word, memadr, regout PC) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
+    (word, memadr, regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
     ⍝ Set index as inmediate
     (word, memadr, 2 + regout Pc) write11 (word radixcompr 1020)
     ⍝ Set Reg0 with displacement, ex 4

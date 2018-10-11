@@ -1050,6 +1050,8 @@ signal11NZ od
 	⍝ Se marcan los flags de NO ZERO y CARRY
 ∇
 
+
+
 ⍝----------------------------
 ⍝-- Instruction Sequencing --
 ⍝----------------------------
@@ -1200,7 +1202,7 @@ ind[Spec, Invop]←0
     ⍝ Load instrucction
     (word, memadr, magni regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
     ⍝ Set index as inmediate
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 1020)
+    (word, memadr, 2 + magni regout Pc) write11 (word magnr 1020)
     ⍝ Set Reg0 with displacement, ex 4
     0 regin (word radixcompr 4)
     ⍝ Set memadr with operand, ex 5
@@ -1212,3 +1214,10 @@ ind[Spec, Invop]←0
     9 = magni read11 (word, memadr, 1024)
     tmp = magni regout Pc 
 ∇
+
+
+∇test_add_reg_ind ;tmp
+    tmp← 4+magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 0 1 0 0 0 0 0 0 0 0 1
+    ⍝ Set mode register indirect (Reg 0)

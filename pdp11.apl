@@ -781,7 +781,7 @@ C5: ⍝ predecrement indirect
     →ENDCASE
 C6: ⍝ index+displacement
     address←size disp11 r
-   →ENDCASE
+    →ENDCASE
 C7: ⍝ index+displacement indirect
     rf← magni read11 word disp11 r
     address←size,memadr,rf
@@ -1209,6 +1209,5 @@ ind[Spec, Invop]←0
     inst←ifetch11
     execute inst
     ⍝ Assert equals
-    9 = magni read11 (word, memadr, 1024)
-    tmp = magni regout Pc 
+    (9 = magni read11 (word, memadr, 1024)) ∧ tmp = magni regout Pc 
 ∇

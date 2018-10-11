@@ -1050,6 +1050,8 @@ signal11NZ od
 	⍝ Se marcan los flags de NO ZERO y CARRY
 ∇
 
+
+
 ⍝----------------------------
 ⍝-- Instruction Sequencing --
 ⍝----------------------------
@@ -1213,6 +1215,7 @@ ind[Spec, Invop]←0
     tmp = magni regout Pc 
 ∇
 
+<<<<<<< HEAD
 ⍝ @Test: ADD - indirect register
 ∇ test_add_indirect_reg;expected_pc 
     expected_pc ← 2 + magni regout Pc

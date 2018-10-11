@@ -701,8 +701,6 @@ psw[id]←status
 		data←,memory[memcap|location;]
 		⍝ se recuperan los bits de la memoria especificados en location, con modulo memcap.
 	ENDCASE:
-	⍝ Por que usar +adrperm11 size ?
-	⍝ Regmap11 hace ?
 ∇
 
 ∇address write11 data;size;location
@@ -783,9 +781,10 @@ C5: ⍝ predecrement indirect
     →ENDCASE
 C6: ⍝ index+displacement
     address←size disp11 r
+   →ENDCASE
 C7: ⍝ index+displacement indirect
     rf← magni read11 word disp11 r
-    address size,memadr,rf
+    address←size,memadr,rf
 ENDCASE:
 ∇
 
@@ -1171,7 +1170,7 @@ Tape←37
 ∇
 
 ⍝ ----------------------
-⍝ ------ Testing--------
+⍝ --     Testing      --
 ⍝ ----------------------
 
 ⍝ Start PDP11, Pc←1050
@@ -1183,11 +1182,11 @@ ind[Spec, Invop]←0
 ⍝ @Test: ADD - inmediate
 ∇ test_add_inmediate
     ⍝ Load instrucction
-    (word, memadr, regout Pc) write11 0 1 1 0 0 1 0 1 1 1 0 0 0 0 0 0
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 1 0 1 1 1 0 0 0 0 0 0
     ⍝ Set Reg0 with B, ex ¯1
     0 regin (word radixcompr ¯1)
     ⍝ Set inmediate value A, ex 5
-    (word, memadr, 2 + regout Pc) write11 (word radixcompr 5)
+    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 5)
     ⍝ Load and execute instrucction from Pc
     inst←ifetch11
     execute inst
@@ -1196,11 +1195,12 @@ ind[Spec, Invop]←0
 ∇
 
 ⍝ @Test: ADD - index + displacement
-∇ test_add_index_displ
+∇ test_add_index_displ;tmp
+     tmp← 4+magni regout Pc
     ⍝ Load instrucction
-    (word, memadr, regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
     ⍝ Set index as inmediate
-    (word, memadr, 2 + regout Pc) write11 (word radixcompr 1020)
+    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 1020)
     ⍝ Set Reg0 with displacement, ex 4
     0 regin (word radixcompr 4)
     ⍝ Set memadr with operand, ex 5
@@ -1210,4 +1210,5 @@ ind[Spec, Invop]←0
     execute inst
     ⍝ Assert equals
     9 = magni read11 (word, memadr, 1024)
+    tmp = magni regout Pc 
 ∇

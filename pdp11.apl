@@ -839,7 +839,7 @@ ENDCASE:
 
 ∇address←size decr11 r;count
 	⍝ DEC PDP11 predecrement
-	count←(magni regour r)-size÷byte
+	count←(magni regout r)-size÷byte
 	Warning report(r=Sp)∧count=limit11
 	Spec report(r=Sp)∧count=limit11-16
 	address←size,memadr,adrcap|count
@@ -1196,11 +1196,11 @@ ind[Spec, Invop]←0
 
 ⍝ @Test: ADD - index + displacement
 ∇ test_add_index_displ;tmp
-     tmp← 4+magni regout Pc
+    tmp← 4+magni regout Pc
     ⍝ Load instrucction
     (word, memadr, magni regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 0 0 0 0
     ⍝ Set index as inmediate
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 1020)
+    (word, memadr, 2 + magni regout Pc) write11 (word magnr 1020)
     ⍝ Set Reg0 with displacement, ex 4
     0 regin (word radixcompr 4)
     ⍝ Set memadr with operand, ex 5
@@ -1211,4 +1211,95 @@ ind[Spec, Invop]←0
     ⍝ Assert equals
     9 = magni read11 (word, memadr, 1024)
     tmp = magni regout Pc 
+∇
+
+⍝ @Test: ADD - indirect register
+∇ test_add_indirect_reg;expected_pc 
+    expected_pc ← 2 + magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 1
+    0 regin (word magnr 1024)
+    (word, memadr, 1024) write11 (word radixcompr 5)
+    1 regin (word radixcompr 4)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    9 = radixcompi read11 (word, regadr, 1)
+    expected_pc = magni regout Pc
+∇
+
+⍝ @Test: ADD - postincrement indirect
+∇ test_post_inc_ind;expected_pc 
+    expected_pc ← 2 + magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 1 1 0 0 0 0 0 0 0 0 1
+    0 regin (word magnr 1020)
+    (word, memadr, 1020) write11 (word magnr 1030)
+    (word, memadr, 1030) write11 (word radixcompr 5)
+    1 regin (word radixcompr 4)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    1022 = magni regout 0
+    9 = radixcompi read11 (word, regadr, 1)
+    1030 = magni read11 (word, memadr, 1020)
+    expected_pc = magni regout Pc
+∇
+
+⍝ @Test: ADD - index + displacement indirect
+∇ test_add_index_displ_ind;expected_pc
+    expected_pc← 4+magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 0 0 0 0 0 0 1 1 1 0 0 0
+    ⍝ Set index as inmediate
+    (word, memadr, 2 + magni regout Pc) write11 (word magnr 1020)
+    ⍝ Set Reg0 with displacement, ex 4
+    0 regin (word radixcompr 4)
+    ⍝ Set memadr with operand, ex 5
+    (word, memadr, 1024) write11 (word magnr 1030)
+    (word, memadr, 1030) write11 (word radixcompr 5)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    9 = magni read11 (word, memadr, 1030)
+    expected_pc = magni regout Pc 
+∇
+
+⍝ @Test: ADD - predecrement
+∇ test_add_predecrement;expected_pc
+    expected_pc←2 + magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 1
+    0 regin (word magnr 1026)
+    (word, memadr, 1024) write11 (word radixcompr 5)
+    1 regin (word radixcompr 4)
+    ⍝ Load and execute instrucction from Pc 
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    9 = magni regout 1
+    expected_pc = magni regout Pc
+    1024 = magni regout 0
+∇
+
+⍝ @Test: ADD - predecrement indirect
+∇ test_add_predecrement_ind;expected_pc
+    expected_pc←2 + magni regout Pc
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 1 0 1 0 1 0 0 0 0 0 0 0 0 1
+    0 regin (word magnr 1026)
+    (word, memadr, 1024) write11 (word magnr 1030)
+    (word, memadr,1030) write11 (word radixcompr 5)
+    1 regin (word radixcompr 4)
+    ⍝ Load and execute instrucction from Pc 
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    9 = magni regout 1
+    expected_pc = magni regout Pc
+    1030 = magni read11 (word, memadr, 1024)
+    1024 = magni regout 0
 ∇

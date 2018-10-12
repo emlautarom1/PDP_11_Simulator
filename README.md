@@ -19,34 +19,34 @@
     1. SWAB  
 
 **Arithmetic Operations**  
-    SXT  
-    NEG  
-    DEC  
-    ADD *  
-    ADC  
-    SUB  
-    SBC  
-    MUL  
-    DIV  
-    CMP  
-    TEST  
+    1. SXT  
+    2. NEG  
+    3. DEC  
+    1. _**ADD**_
+    2. ADC  
+    3. SUB  
+    1. SBC  
+    2. MUL  
+    3. DIV  
+    1. CMP  
+    2. TEST  
  
  **Float Operations**  
-    CLRF  
-    LDF  
-    LDCI  
-    LDCF  
-    STF  
-    STCI  
-    STCF  
-    LDEX  
-    STEX  
-    NEGF  
-    ABSF  
-    ADDF  
-    SUBF  
-    MULF  
-    MODF  
-    DIVF   
-    COMPF  
-    TSTF  
+    1. CLRF  
+    2. LDF  
+    3. LDCI  
+    1. LDCF  
+    2. STF  
+    3. STCI  
+    1. STCF  
+    2. LDEX  
+    3. STEX  
+    1. NEGF  
+    2. ABSF  
+    3. ADDF  
+    1. SUBF  
+    2. MULF  
+    3. MODF  
+    1. DIVF   
+    2. COMPF  
+    3. TSTF  

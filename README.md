@@ -22,7 +22,7 @@
     1. SXT  
     2. NEG  
     3. DEC  
-    1. _**ADD**_
+    1. _**ADD**_  
     2. ADC  
     3. SUB  
     1. SBC  

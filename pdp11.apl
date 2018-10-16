@@ -1018,9 +1018,9 @@ C2: ⍝ instruction address
     signal11NZ od
 ∇
 
-⍝------------------------
-⍝-- Logic Instructions --
-⍝------------------------
+⍝--------------------------------
+⍝--    Logical Instructions    --
+⍝--------------------------------
 
 ∇CLR;dest
     ⍝ DEC PDP 11 Clear
@@ -1087,7 +1087,6 @@ C2: ⍝ instruction address
     result←od1≠od2
     dest write11 result
     signal11NZ result
-∇
 
 ∇BIS;dest;od1;od2;r1
   od1← read11 size11 adr11 Source
@@ -1124,7 +1123,6 @@ C2: ⍝ instruction address
   Carry stin ¯1 ↑ od1
   signal11NZ r1
   Oflo stin (¯1↑od1)≠1↑r1
-
 ∇
 
 ⍝-------------------------------

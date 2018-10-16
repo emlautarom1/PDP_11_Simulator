@@ -976,7 +976,7 @@ C2: ⍝ instruction address
    IF flstatus[Ft]
    THEN: ⍝ truncate
       rep[Coef]← hidebit (⍴Coef) signmagr truncate coefficient
-           →ENDIF:
+      →ENDIF
    ELSE:
       rep[Coef]← hidebit (⍴Coef) signmagr round coefficient
    ENDIF:
@@ -1018,6 +1018,7 @@ C2: ⍝ instruction address
     signal11NZ od
 ∇
 
+<<<<<<< Updated upstream
 ⍝------------------------
 ⍝-- Logic Instructions --
 ⍝------------------------
@@ -1037,6 +1038,47 @@ C2: ⍝ instruction address
     result←od1≠od2
     dest write11 result
     signal11NZ result
+=======
+⍝--------------------------------
+⍝--    Logical Instructions    --
+⍝--------------------------------
+
+∇BIS;dest;od1;od2;r1
+  od1← read11 size11 adr11 Source
+  dest← size11 adr11 Dest
+  od2← read11 dest
+  r1← od2 ∨ od1
+  dest write11 r1
+  signal11NZ r1
+∇
+
+∇BIT;od1;od2;r1
+  od1← read11 size11 adr11 Source
+  od2← read11 size11 adr11 Dest
+  r1← od2 ∧ od1
+  signal11NZ r1
+∇
+
+∇ASL;dest;od1;r1;value;result
+  dest← size11 adr11 Dest
+  od1← read11 dest
+  value←radixcompi od1
+  result← value×radix
+  r1← size11 radixcompr result
+  dest write11 r1
+  Carry stin 1 ↑ od1
+  signal11NZO r1
+∇
+
+∇ROR;dest;od1;r1;result
+  dest← size11 adr11 Dest
+  od1← read11 dest
+  r1← ¯1↓(stout Carry),od1
+  dest write11 r1
+  Carry stin ¯1 ↑ od1
+  signal11NZ r1
+  Oflo stin (¯1↑od1)≠1↑r1
+>>>>>>> Stashed changes
 ∇
 
 ⍝-------------------------------
@@ -1328,4 +1370,103 @@ ind[Spec, Invop]←0
     expected_pc = magni regout Pc
     1030 = magni read11 (word, memadr, 1024)
     1024 = magni regout 0
+∇
+⍝ @Test: BIS - Register to Register
+∇ test_bis_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 1
+    ⍝ Set Reg0 with B, ex 0x1234
+    0 regin (word magnr 16⊥1 2 3 4)
+    ⍝ Set Reg1 value A, ex 0x1111
+    1 regin (word magnr 16⊥1 1 1 1)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 1 3 3 5) = magni regout 1
+    0 0 0 = stout Oflo Neg Zero
+∇
+⍝ @Test: BISB - inmediate to Register
+∇ test_bisb_inm
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 1 1 0 1 0 1 0 1 1 1 0 0 0 0 0 1
+    (word, memadr, 2+magni regout Pc) write11 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1
+    ⍝ Set Reg1 with B, ex 0x1234
+    1 regin (word magnr 16⊥1 2 3 4)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 1 2 3 5) = magni regout 1
+    0 0 0 = stout Oflo Neg Zero
+∇
+⍝ @Test: BIT - Register to Register
+∇ test_bit_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 1
+    ⍝ Set Reg0 with B, ex 0x0018
+    0 regin (word magnr 16⊥0 0 1 8)
+    ⍝ Set Reg1 value A, ex 0x3 2 4 5)
+    1 regin (word magnr 16⊥3 2 4 5)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 0 0 1 8) = magni regout 0
+    (16⊥ 3 2 4 5) = magni regout 1
+    0 0 1 = stout Oflo Neg Zero
+∇
+⍝ @Test: ASL - Register
+∇ test_asl_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 1 0 0 1 1 0 0 0 0 0 0
+    ⍝ Set Reg0 with B, ex 0x8000
+    0 regin (word magnr 16⊥8 0 0 0)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 0 0 0 0) = magni regout 0
+    1 0 1 1= stout Oflo Neg Zero Carry
+∇
+⍝ @Test: ASLB - Register
+∇ test_aslb_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 1 0 0 0 1 1 0 0 1 1 0 0 0 0 0 0
+    ⍝ Set Reg0 with B, ex 0x8080
+    0 regin (word magnr 16⊥8 0 8 0)
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 8 0 0 0) = magni regout 0
+    1 0 1 1= stout Oflo Neg Zero Carry
+∇
+⍝ @Test: ROR - Register
+∇ test_ror_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0
+    ⍝ Set Reg0 with B, ex 0x0001
+    0 regin (word magnr 16⊥0 0 0 1)
+    Carry stin 0
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 0 0 0 0) = magni regout 0
+    1 0 1 1= stout Oflo Neg Zero Carry
+∇
+⍝ @Test: RORB - Register
+∇ test_rorb_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0
+    ⍝ Set Reg0 with B, ex 0x8001
+    0 regin (word magnr 16⊥8 0 0 1)
+    Carry stin 0
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    (16⊥ 8 0 0 0) = magni regout 0
+    1 0 1 1= stout Oflo Neg Zero Carry
 ∇

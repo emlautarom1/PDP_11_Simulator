@@ -1030,7 +1030,56 @@ C2: ⍝ instruction address
     Carry stin 0
 ∇
 
-∇XOR ;od1;od2;dest;result
+∇COM ;dest;rl
+    dest←size11 adr11 Dest
+    rl ← ~read11 dest
+    dest write11 rl
+    signal11NZ rl
+∇
+
+∇BIC ;dest;od1;od2;rl
+    od1←read11 size11 adr11 Source
+    od2 ← read11 size11 adr11 Dest
+    rl← od2∧~od1
+    dest write11 rl
+    signal11NZ rl
+∇
+
+∇ASHC ;dest;shift;od;value;result;rl
+    dest←byte adr11 Dest 
+    
+    ⍝ Size of the shift
+    shift ←radixcompi ¯6↑read11 dest 
+    
+    ⍝ The 2 Registers where it will be loaded the long number
+    od←regout fld Source[R]
+    od←od,regout odd11 fld Source[R]
+    value←radixcompi od
+    
+    ⍝ Depending on the value of shift, it will be right or left
+    result←value×radix*shift
+
+    rl←long radixcompr⌊result
+    (fld Source[R]) regin word ↑ rl
+    (odd11 fld Source[R]) regin word ↓ rl
+    
+    ⍝ Add a 0 to the last position where it will be the last bit shifted, which will be loaded into Carry
+    Carry stin ¯1↑shift⌽od,0
+    signal11NZO rl
+∇
+
+∇ROL ;dest;od;rl
+    dest←size11 adr11 Dest
+    od←read11 dest
+    rl←1↓od, stout Carry
+    dest write11 rl
+    Carry stin 1↑od
+    signal11NZ rl
+    Oflo stin≠/2↑od
+∇
+
+
+∇XOR ;od1, od2; dest;result
 ⍝ ≠ is XOR
     od1←regout fld Source[R]
     dest←word adr11 Dest

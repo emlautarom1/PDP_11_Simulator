@@ -887,7 +887,7 @@ C2: ⍝ instruction address
 ∇
 
 ⍝------------------------
-⍝-- size specification -- 
+⍝-- Size specification -- 
 ⍝------------------------
 
 ∇ size← size11 
@@ -1013,11 +1013,32 @@ C2: ⍝ instruction address
  
 ∇MOV ;od
 ⍝ DEC PDP 11 Move
-od ← read11 size11 adr11 Source
-(size11 adr11 Dest) write11 od
-signal11NZ od
+    od ← read11 size11 adr11 Source
+    (size11 adr11 Dest) write11 od
+    signal11NZ od
 ∇
- 
+
+⍝------------------------
+⍝-- Logic Instructions --
+⍝------------------------
+
+∇CLR ;dest
+    ⍝ DEC PDP 11 Clear
+    dest←size11 adr11 Dest
+    dest write11 size11⍴0
+    signal11NZ 0
+∇
+
+∇XOR ;od1, od2; dest;result
+⍝ ≠ is XOR
+    od1←regout fld Source[R]
+    dest←word adr11 Dest
+    od2←read11 dest
+    result←od1≠od2
+    dest write11 result
+    signal11NZ result
+∇
+
 ⍝-------------------------------
 ⍝-- Arithmetical Instructions --
 ⍝-------------------------------
@@ -1025,32 +1046,36 @@ signal11NZ od
 ∇ADD;dest;ad;addend;augend;sum;rl;cy
 ⍝ ADD de PDP11 para NO PF
 	ad←read11 word adr11 Source
-	⍝ Se ejecuta adr11(word,Source)
-	⍝ Se lee un word de Source
-	⍝ Se ejecuta read con (word,Space,Value)
-	⍝ Finalmente, ad contiene word bits de "Space[Value]"
+	⍝ ad has word bits from "Space[Value]"
 	addend←radixcompi ad
-	⍝ Se interpretan los word bits como complemento a la raiz
-
+	⍝ Interpreted bits as radix complement
 	dest←word adr11 Dest
-	⍝ analogo a ad
 	augend←radixcompi read11 dest
-
 	sum←augend+addend
-	⍝ Suma a alto nivel, en APL
-
+	⍝ APL Add
 	rl←word radixcompr sum
-	⍝ rl tendra una representacion de word de la suma sum
+	⍝ sum representation as word in rl 
 	dest write11 rl
-	⍝ Se escribe en dest la representacion de la suma, es decir, rl
-	
+	⍝ write in dest the representation
 	signal11NZO rl
 	cy←word carryfrom augend,addend
 	Carry stin cy
-	⍝ Se marcan los flags de NO ZERO y CARRY
+	⍝ Flag checks
 ∇
 
+∇ASH;dest;shift;od;value;result;rl
+    ⍝ DEC PDP 11 Shift Arithmetic
+    dest←byte adr11 Dest
+    shift←radixcompi ¯6↑read11 dest
+    od←regout fld Source[R]
+    value←radixcompi od
+    result←value×radix*shift
+    rl←word radixcompr⌊result
+    (fld Source[R]) regin rl
+    Carry stin ¯1↑shift⌽od,0
+    signal11NZO rl
 
+∇
 
 ⍝----------------------------
 ⍝-- Instruction Sequencing --

@@ -6,16 +6,16 @@
 **Logic Operations**  
 - [x] - 1 - CLR  
 - [ ] - 2 - COM   
-- [ ] - 3 - BIS  
+- [x] - 3 - BIS  
 - [x] - 1 - XOR  
 - [ ] - 2 - BIC  
-- [ ] - 3 - BIT  
+- [x] - 3 - BIT  
 - [x] - 1 - ASH  
 - [ ] - 2 - ASHC  
-- [ ] - 3 - ASL  
+- [x] - 3 - ASL  
 - [ ] - 1 - ASR  
 - [ ] - 2 - ROL  
-- [ ] - 3 - ROR  
+- [x] - 3 - ROR  
 - [ ] - 1 - SWAB  
 
 **Arithmetic Operations**  

@@ -1018,7 +1018,6 @@ C2: ⍝ instruction address
     signal11NZ od
 ∇
 
-<<<<<<< Updated upstream
 ⍝------------------------
 ⍝-- Logic Instructions --
 ⍝------------------------
@@ -1038,10 +1037,7 @@ C2: ⍝ instruction address
     result←od1≠od2
     dest write11 result
     signal11NZ result
-=======
-⍝--------------------------------
-⍝--    Logical Instructions    --
-⍝--------------------------------
+∇
 
 ∇BIS;dest;od1;od2;r1
   od1← read11 size11 adr11 Source
@@ -1078,7 +1074,7 @@ C2: ⍝ instruction address
   Carry stin ¯1 ↑ od1
   signal11NZ r1
   Oflo stin (¯1↑od1)≠1↑r1
->>>>>>> Stashed changes
+
 ∇
 
 ⍝-------------------------------
@@ -1116,7 +1112,6 @@ C2: ⍝ instruction address
     (fld Source[R]) regin rl
     Carry stin ¯1↑shift⌽od,0
     signal11NZO rl
-
 ∇
 
 ⍝----------------------------

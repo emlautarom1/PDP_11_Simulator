@@ -1063,8 +1063,18 @@ C2: ⍝ instruction address
 	⍝ Flag checks
 ∇
 
-∇ASH
-    ⍝ Shift
+∇ASH;dest;shift;od;value;result;rl
+    ⍝ DEC PDP 11 Shift Arithmetic
+    dest←byte adr11 Dest
+    shift←radixcompi ¯6↑read11 dest
+    od←regout fld Source[R]
+    value←radixcompi od
+    result←value×radix*shift
+    rl←word radixcompr⌊result
+    (fld Source[R]) regin rl
+    Carry stin ¯1↑shift⌽od,0
+    signal11NZO rl
+
 ∇
 
 ⍝----------------------------

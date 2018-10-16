@@ -1022,14 +1022,15 @@ C2: ⍝ instruction address
 ⍝-- Logic Instructions --
 ⍝------------------------
 
-∇CLR ;dest
+∇CLR;dest
     ⍝ DEC PDP 11 Clear
     dest←size11 adr11 Dest
     dest write11 size11⍴0
     signal11NZ 0
+    Carry stin 0
 ∇
 
-∇XOR ;od1, od2; dest;result
+∇XOR ;od1;od2;dest;result
 ⍝ ≠ is XOR
     od1←regout fld Source[R]
     dest←word adr11 Dest
@@ -1113,6 +1114,13 @@ C2: ⍝ instruction address
     Carry stin ¯1↑shift⌽od,0
     signal11NZO rl
 ∇
+
+⍝ ∇ASR;dest
+⍝     ⍝ DEC PDP 11 Shift Right
+⍝     dest←byte adr11 Dest
+⍝     
+⍝     signal11NZO <>
+⍝ ∇
 
 ⍝----------------------------
 ⍝-- Instruction Sequencing --
@@ -1464,4 +1472,31 @@ ind[Spec, Invop]←0
     ⍝ Assert equals
     (16⊥ 8 0 0 0) = magni regout 0
     1 0 1 1= stout Oflo Neg Zero Carry
+∇
+
+⍝ @Test: CLR - Register
+∇ test_clr_reg
+    ⍝ Load instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0
+    ⍝ Reg0
+    0 regin (word radixcompr ¯1)
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/(word⍴0 = regout 0)
+    0 1 0 0 = stout (Neg Zero Oflo Carry)
+∇
+
+⍝ @Test: XOR - Register
+∇ test_xor_reg
+    ⍝ Load instruction
+    (word, memadr, magni regout Pc) write11 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1
+    0 regin word⍴(1 0)
+    1 regin word⍴(0 1)
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/((regout 1) = word⍴1)
+    ⍝ Carry unchanged
+    ∧/(1 0 0 = stout Neg Zero Oflo)
 ∇

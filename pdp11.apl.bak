@@ -127,8 +127,6 @@ rep←⍉(size⍴radix)⊤value
 modulus←radix*size-1
 sign←((1↑plus),minus)[number<0]
 rep←sign,⍉((size-1)⍴radix)⊤|number
-xmax←number≥modulus
-xmin←number≤-modulus
 ∇
 
 ∇rep←size radixcompr number;modulus
@@ -166,18 +164,16 @@ xmin←number<-modulus÷2
    rep←⍉(size⍴radix) ⊤ number+bias
 ∇
 
-∇ rep← hidebit r
+∇ rep← hidebit rep
 ⍝ hide hidden bit
 ⍝ rep is signed-magnitude
-   r[1]←r[0]
-   rep←r
+   rep[1]←rep[0]
 ∇
 
-∇rep←insertbit r
+∇rep←insertbit rep
 ⍝ expose hidden bit
 ⍝ rep is signed-magnitude
-r[1]←1
-rep←r
+rep[1]←1
 ∇
 
 ∇ result← truncate number
@@ -205,7 +201,7 @@ rep←r
          →ENDIF
   ELSE: ⍝ minimal or speciefied exponent
      expnorm←⌊(1+base⍟|1↑numexp)+point-(⍴1↓Coef)×base⍟radix
-     exponent← ⌈/expnorm,1↓numexp
+     exponent← ⌈/expnomr,1↓numexp
   ENDIF:
    coefficient←0⊥(1↑numexp)÷base*exponent-point
 ∇
@@ -300,7 +296,6 @@ radix←2
 byte← 8
 word←16
 long← 32
-double←64
 ⍝ capacidad de direccionamiento
 adrcap←radix*word
 ∇
@@ -320,7 +315,7 @@ memory←?(memcap , byte)⍴radix
 reg← ?(16,word)⍴ radix
 
 ⍝ - Registros de punto flotantes
-flreg← ?(6,double)⍴radix
+flregs← ?(6,long)⍴radix
 
 ⍝ almacenamiento de control
 ⍝ -indicadores
@@ -892,7 +887,7 @@ C2: ⍝ instruction address
 ∇
 
 ⍝------------------------
-⍝-- Size specification -- 
+⍝-- size specification -- 
 ⍝------------------------
 
 ∇ size← size11 
@@ -978,12 +973,12 @@ C2: ⍝ instruction address
    fl11 size
    (-extexp) normalize number
    rep← size⍴0
-   →IF flstatus[Ft]
+   IF flstatus[Ft]
    THEN: ⍝ truncate
-      rep[Coef]← hidebit (⍴Coef) signmagnr truncate coefficient
+      rep[Coef]← hidebit (⍴Coef) signmagr truncate coefficient
       →ENDIF
    ELSE:
-      rep[Coef]← hidebit (⍴Coef) signmagnr round coefficient
+      rep[Coef]← hidebit (⍴Coef) signmagr round coefficient
    ENDIF:
    rep[Exp]←(⍴Exp) biasr exponent+xmax
 ⍝ out of domain
@@ -1018,80 +1013,14 @@ C2: ⍝ instruction address
  
 ∇MOV ;od
 ⍝ DEC PDP 11 Move
-    od ← read11 size11 adr11 Source
-    (size11 adr11 Dest) write11 od
-    signal11NZ od
+od ← read11 size11 adr11 Source
+(size11 adr11 Dest) write11 od
+signal11NZ od
 ∇
 
 ⍝--------------------------------
 ⍝--    Logical Instructions    --
 ⍝--------------------------------
-
-∇CLR;dest
-    ⍝ DEC PDP 11 Clear
-    dest←size11 adr11 Dest
-    dest write11 size11⍴0
-    signal11NZ 0
-    Carry stin 0
-∇
-
-∇COM ;dest;rl
-    dest←size11 adr11 Dest
-    rl ← ~read11 dest
-    dest write11 rl
-    signal11NZ rl
-∇
-
-∇BIC ;dest;od1;od2;rl
-    od1←read11 size11 adr11 Source
-    od2 ← read11 size11 adr11 Dest
-    rl← od2∧~od1
-    dest write11 rl
-    signal11NZ rl
-∇
-
-∇ASHC ;dest;shift;od;value;result;rl
-    dest←byte adr11 Dest 
-    
-    ⍝ Size of the shift
-    shift ←radixcompi ¯6↑read11 dest 
-    
-    ⍝ The 2 Registers where it will be loaded the long number
-    od←regout fld Source[R]
-    od←od,regout odd11 fld Source[R]
-    value←radixcompi od
-    
-    ⍝ Depending on the value of shift, it will be right or left
-    result←value×radix*shift
-
-    rl←long radixcompr⌊result
-    (fld Source[R]) regin word ↑ rl
-    (odd11 fld Source[R]) regin word ↓ rl
-    
-    ⍝ Add a 0 to the last position where it will be the last bit shifted, which will be loaded into Carry
-    Carry stin ¯1↑shift⌽od,0
-    signal11NZO rl
-∇
-
-∇ROL ;dest;od;rl
-    dest←size11 adr11 Dest
-    od←read11 dest
-    rl←1↓od, stout Carry
-    dest write11 rl
-    Carry stin 1↑od
-    signal11NZ rl
-    Oflo stin≠/2↑od
-∇
-
-
-∇XOR ;od1, od2; dest;result
-⍝ ≠ is XOR
-    od1←regout fld Source[R]
-    dest←word adr11 Dest
-    od2←read11 dest
-    result←od1≠od2
-    dest write11 result
-    signal11NZ result
 
 ∇BIS;dest;od1;od2;r1
   od1← read11 size11 adr11 Source
@@ -1137,109 +1066,32 @@ C2: ⍝ instruction address
 ∇ADD;dest;ad;addend;augend;sum;rl;cy
 ⍝ ADD de PDP11 para NO PF
 	ad←read11 word adr11 Source
-	⍝ ad has word bits from "Space[Value]"
+	⍝ Se ejecuta adr11(word,Source)
+	⍝ Se lee un word de Source
+	⍝ Se ejecuta read con (word,Space,Value)
+	⍝ Finalmente, ad contiene word bits de "Space[Value]"
 	addend←radixcompi ad
-	⍝ Interpreted bits as radix complement
+	⍝ Se interpretan los word bits como complemento a la raiz
+
 	dest←word adr11 Dest
+	⍝ analogo a ad
 	augend←radixcompi read11 dest
+
 	sum←augend+addend
-	⍝ APL Add
+	⍝ Suma a alto nivel, en APL
+
 	rl←word radixcompr sum
-	⍝ sum representation as word in rl 
+	⍝ rl tendra una representacion de word de la suma sum
 	dest write11 rl
-	⍝ write in dest the representation
+	⍝ Se escribe en dest la representacion de la suma, es decir, rl
+	
 	signal11NZO rl
 	cy←word carryfrom augend,addend
 	Carry stin cy
-	⍝ Flag checks
+	⍝ Se marcan los flags de NO ZERO y CARRY
 ∇
 
-∇ASH;dest;shift;od;value;result;rl
-    ⍝ DEC PDP 11 Shift Arithmetic
-    dest←byte adr11 Dest
-    shift←radixcompi ¯6↑read11 dest
-    od←regout fld Source[R]
-    value←radixcompi od
-    result←value×radix*shift
-    rl←word radixcompr⌊result
-    (fld Source[R]) regin rl
-    Carry stin ¯1↑shift⌽od,0
-    signal11NZO rl
-∇
 
-⍝ ∇ASR;dest
-⍝     ⍝ DEC PDP 11 Shift Right
-⍝     dest←byte adr11 Dest
-⍝     
-⍝     signal11NZO <>
-⍝ ∇
-
-∇DEC;dest;od;value;result;r1
-    ⍝ DEC PDP 11 Count Decrement
-    dest←size11 adr11 Dest
-    od←read11 dest
-    value←radixcompi od
-    result←value-1
-    r1←size11 radixcompr result
-    dest write11 r1
-    signal11NZO r1
-∇
-
-∇SUB;dest;ad;addend;augend;add;r1;cy
-⍝ SUB DEC PDP11
-	ad←read11 word adr11 Source
-	addend←radixcompi ~ad
-	⍝ Interpreted bits as radix complement
-	dest←word adr11 Dest
-	augend←radixcompi read11 dest
-	add←addend+augend+1
-	⍝ APL sub
-	r1←word radixcompr add
-	⍝ sub representation as word in r1
-	dest write11 r1
-	⍝ write in dest the representation
-	signal11NZO r1
-	cy←word carryfrom addend,augend,1
-	Carry stin ~cy
-	⍝ Flag checks
-∇
-
-∇DIV;dest;dvnd;dvsr;rem;divisor;dividend;div;r1;r2;cy;divz;ovf
-⍝ DIV DEC PDP11
-	dvsr←read11 word adr11 Dest
-	divisor←radixcompi dvsr
-    divz←divisor=0
-	⍝ Interpreted bits as radix complement
-    dest←fld Source[R]
-    dvnd←(regout dest),regout odd11 dest
-    dividend←radixcompi dvnd
-    ovf←(|radixcompi regout dest)>|divisor
-    →If ~divz∨ovf
-	THEN:
-        div←⌊dividend÷divisor
-        rem←dividend-divisor×⌊dividend÷divisor
-	    ⍝ APL div
-        r2← word radixcompr rem
-        (word,regadr,odd11 dest) write11 r2
-	    r1←word radixcompr div
-        (word,regadr,dest) write11 r1
- 	    signal11NZ r1
-    ENDIF:
-    Oflo stin divz∨ovf
-    Carry stin divz
-∇
-
-⍝--------------------------------
-⍝-- Floating-point Instruction --
-⍝--------------------------------
-
-∇LDCI;size;operand
-  ⍝ LDCI DEC PDP11 (load from integer)
-  size←(word,long)[flstatus[Fl]]
-  operand←radixcompi size↑read11 size adr11 Dest
-  flreg[fld Rfl;⍳size11fl]←size11fl fl11r operand
-  signal11FNZO operand
-∇
 
 ⍝----------------------------
 ⍝-- Instruction Sequencing --
@@ -1591,233 +1443,4 @@ ind[Spec, Invop]←0
     ⍝ Assert equals
     (16⊥ 8 0 0 0) = magni regout 0
     1 0 1 1= stout Oflo Neg Zero Carry
-∇
-
-⍝ @Test: CLR - Register
-∇ test_clr_reg
-    ⍝ Load instruction
-    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 0 0 0 0 0 0 0 0 0
-    ⍝ Reg0
-    0 regin (word radixcompr ¯1)
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ∧/(word⍴0 = regout 0)
-    0 1 0 0 = stout (Neg Zero Oflo Carry)
-∇
-
-⍝ @Test: XOR - Register
-∇ test_xor_reg
-    ⍝ Load instruction
-    (word, memadr, magni regout Pc) write11 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1
-    0 regin word⍴(1 0)
-    1 regin word⍴(0 1)
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ∧/((regout 1) = word⍴1)
-    ⍝ Carry unchanged
-    ∧/(1 0 0 = stout Neg Zero Oflo)
-∇
-
-⍝ @Test: DEC - Register
-∇ test_dec_reg
-    ⍝ Load instruction
-    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 0 1 1 0 0 0 0 0 0
-    ⍝ Reg0
-    0 regin (word radixcompr -2*word-1)
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ((16⊥ 7 15 15 15)= magni regout 0)
-    0 0 1 = stout Neg Zero Oflo
-∇
-
-⍝ @Test: DECB - Register
-∇ test_decb_reg
-    ⍝ Load instruction
-    (word, memadr, magni regout Pc) write11 1 0 0 0 1 0 1 0 1 1 0 0 0 0 0 0
-    ⍝ Reg0
-    0 regin (word magnr 16⊥8 0 8 0)
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ((16⊥ 8 0 7 15)= magni regout 0)
-    0 0 1 = stout Neg Zero Oflo
-∇
-
-⍝ @Test: SUB - inmediate
-∇ test_sub_inmediate
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 0 0 1 0 1 1 1 0 0 0 0 0 0
-    ⍝ Set Reg0 with B, ex 5
-    0 regin (word radixcompr ¯1)
-    ⍝ Set inmediate value A, ex 5
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 5)
-    ⍝ Load and execute instrucction from Pc
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ¯6 = radixcompi regout 0
-    1 0 0 0= stout Neg Zero Oflo Carry
-∇
-
-⍝ @Test: DIV - inmediate
-∇ test_div_inmediate
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 0 1 1 1 0 0 1 0 0 0 0 1 0 1 1 1
-    ⍝ Set Reg0 with B, ex 0
-    0 regin (word radixcompr ¯1)
-    1 regin (word radixcompr ¯7)
-    ⍝ Set inmediate value A, ex -3
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr ¯3)
-    ⍝ Load and execute instrucction from Pc
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    2 = radixcompi regout 0
-    ¯1= radixcompi regout 1
-    0 0 0 0= stout Neg Zero Oflo Carry
-∇
-
-⍝ @Test: DIV - div by zero
-∇ test_div_zero
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 0 1 1 1 0 0 1 0 0 0 0 1 0 1 1 1
-    ⍝ Set Reg0 with B, ex 0
-    0 regin (word radixcompr ¯1)
-    1 regin (word radixcompr ¯7)
-    ⍝ Set inmediate value A, ex 0
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 0)
-    ⍝ Load and execute instrucction from Pc
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ¯1= radixcompi regout 0
-    ¯7= radixcompi regout 1
-    1 1= stout Oflo Carry
-∇
-
-⍝ @Test: DIV - overflow
-∇ test_div_ovf
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 0 1 1 1 0 0 1 0 0 0 0 1 0 1 1 1
-    ⍝ Set Reg0 with B, ex 0
-    0 regin word↑long radixcompr (-2*17)-2*3
-    1 regin word↓long radixcompr (-2*17)-2*3
-    ⍝ Set inmediate value A, ex -2
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr ¯2)
-    ⍝ Load and execute instrucction from Pc
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-   (radixcompi word↑long radixcompr (-2*17)-2*3)= radixcompi regout 0
-   (radixcompi word↓long radixcompr (-2*17)-2*3)= radixcompi regout 1
-    1 0= stout Oflo Carry
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_inmediate
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 1 0 1 1 1
-    ⍝ Set inmediate value A, ex 2
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr ¯2)
-    flstatus[Fl]←0
-    flstatus[Fd]←1
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ¯2=fl11i flreg[0;]
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_long
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 1 0 1 1 1
-    ⍝ Set inmediate value A, ex 2
-    (word, memadr, 2 + magni regout Pc) write11 (word radixcompr 2)
-    (word, memadr, 4 + magni regout Pc) write11 (word radixcompr 2)
-    flstatus[Fl]←1
-    flstatus[Fd]←1
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    (2+2×2*16)=fl11i flreg[0;]
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_register
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
-    ⍝ Set inmediate value A, ex 2
-    0 regin word radixcompr ¯2
-    flstatus[Fl]←0
-    flstatus[Fd]←1
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    ¯2=fl11i flreg[0;]
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_reg_word
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0
-    ⍝ Set inmediate value A, ex 2
-    flstatus[Fl]←0
-    flstatus[Fd]←1
-    fl11 size11fl
-    0 regin word radixcompr 2-2*15
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    (2-2*15)=fl11i flreg[0;]
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_reg_ind_long
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 0 1 0 0 0
-    ⍝ Set inmediate value A, ex 2
-    flstatus[Fl]←1
-    flstatus[Fd]←1
-    fl11 size11fl
-    0 regin word radixcompr 1024
-    (long, memadr, 1024) write11 long radixcompr 2-2*15
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    (2-2*15)=fl11i flreg[0;]
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_post_long
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 0 1 0 0 0 0
-    flstatus[Fl]←1
-    flstatus[Fd]←1
-    fl11 size11fl
-    0 regin word radixcompr 1024
-    (long, memadr, 1024) write11 long radixcompr 2-2*15
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    (2-2*15)=fl11i flreg[0;]
-    1028=radixcompi regout 0
-∇
-
-⍝ @Test: LDCI - load float from integer
-∇test_ldci_pre_long
-    ⍝ Load instrucction
-    (word, memadr, magni regout Pc) write11 1 1 1 1 1 1 1 0 0 0 1 0 0 0 0 0
-    flstatus[Fl]←1
-    flstatus[Fd]←1
-    fl11 size11fl
-    0 regin word radixcompr 1028
-    (long, memadr, 1024) write11 long radixcompr 2-2*15
-    inst←ifetch11
-    execute inst
-    ⍝ Assert equals
-    (2-2*15)=fl11i flreg[0;]
-    1024=radixcompi regout 0
 ∇

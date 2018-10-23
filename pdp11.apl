@@ -1855,4 +1855,13 @@ ind[Spec, Invop]←0
     ∧/( (word magnr od2) ∧~ (word magnr od1) )=regout 1
 ∇
 
-
+⍝ @Test: ROL-Register
+∇test_rol_reg ;od
+    ⍝ Load Instruction
+    (word ,memadr,magni regout Pc) write11 0 0 0 0 1 1 0 0 0 1 0 0 0 0 0 0
+    od← 31
+    ⍝Load operand Reg N°0
+    0 regin word magnr od
+    inst ←ifetch11
+    execute inst
+∇

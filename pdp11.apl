@@ -1885,14 +1885,21 @@ ind[Spec, Invop]←0
 ∇
 
 ⍝ @Test: ROL-Register
-∇test_rol_reg ;od
+∇test_rol_reg ;od;aux
     ⍝ Load Instruction
     (word ,memadr,magni regout Pc) write11 0 0 0 0 1 1 0 0 0 1 0 0 0 0 0 0
     od← 31
+    
+    ⍝ Save the Carry to check 
+    aux←stout Carry
+
     ⍝Load operand Reg N°0
     0 regin word magnr od
-    inst←ifetch11
+    inst ←ifetch11
     execute inst
+    
+    aux = ¯1↑regout 0
+    (stout Carry)= 1↑word magnr od
 ∇
 
 ⍝ @Test: SWAB-Register
@@ -1905,3 +1912,4 @@ ind[Spec, Invop]←0
     ⍝ Assert equals
     ∧/((8⍴0),(8⍴1)) = regout 0
 ∇
+

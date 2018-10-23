@@ -1043,8 +1043,9 @@ C2: ⍝ instruction address
 ∇
 
 ∇BIC ;dest;od1;od2;rl
+    dest←size11 adr11 Dest
     od1←read11 size11 adr11 Source
-    od2 ← read11 size11 adr11 Dest
+    od2 ← read11 dest
     rl← od2∧~od1
     dest write11 rl
     signal11NZ rl
@@ -1821,3 +1822,37 @@ ind[Spec, Invop]←0
     (2-2*15)=fl11i flreg[0;]
     1024=radixcompi regout 0
 ∇
+
+⍝ @Test: COM- Register
+∇test_com_reg ;od1
+
+    ⍝ Load Instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 0 0 1 0 0 0 0 0 1
+    ⍝ Load Operand in Reg N°1
+    od←2
+    1 regin word magnr od
+    inst ←ifetch11
+    execute inst
+    ∧/(~ word magnr od)=regout 1
+∇
+
+⍝ @Test: BIC-Register
+∇test_bic_reg ;od1;od2
+
+    ⍝Load Instruction
+    (word, memadr,magni regout Pc) write11 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1
+    ⍝ Load Operand 1 in Reg N°0
+    od1←1
+    0 regin word magnr od1
+    
+    ⍝Load Operand 2 in Reg N°1
+    od2←20
+    1 regin word magnr od2
+
+    inst ←ifetch11
+    execute inst
+
+    ∧/( (word magnr od2) ∧~ (word magnr od1) )=regout 1
+∇
+
+

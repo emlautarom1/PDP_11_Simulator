@@ -21,20 +21,20 @@
 **Arithmetic Operations**  
 - [ ] - 1 - SXT  
 - [ ] - 2 - NEG  
-- [ ] - 3 - DEC
+- [x] - 3 - DEC
 - [x] - 1 - ADD
 - [ ] - 2 - ADC  
-- [ ] - 3 - SUB  
+- [x] - 3 - SUB  
 - [ ] - 1 - SBC  
 - [ ] - 2 - MUL  
-- [ ] - 3 - DIV  
+- [x] - 3 - DIV  
 - [ ] - 1 - CMP  
 - [ ] - 2 - TEST  
  
  **Float Operations**  
 - [ ] - 1 - CLRF  
 - [ ] - 2 - LDF  
-- [ ] - 3 - LDCI  
+- [x] - 3 - LDCI  
 - [ ] - 1 - LDCF  
 - [ ] - 2 - STF  
 - [ ] - 3 - STCI  

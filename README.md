@@ -8,7 +8,7 @@
 - [x] - 2 - COM   
 - [x] - 3 - BIS  
 - [x] - 1 - XOR  
-- [ ] - 2 - BIC  
+- [x] - 2 - BIC  
 - [x] - 3 - BIT  
 - [x] - 1 - ASH  
 - [x] - 2 - ASHC  

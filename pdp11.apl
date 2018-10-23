@@ -1148,6 +1148,15 @@ C2: ⍝ instruction address
   Oflo stin (¯1↑od1)≠1↑r1
 ∇
 
+∇SWAB;dest;od;r1
+    dest←word adr11 Dest
+    od←read11 dest
+    r1←byte⌽od
+    dest write11 r1
+    Carry stin 0
+    signal11NZ r1
+∇
+
 ⍝-------------------------------
 ⍝-- Arithmetical Instructions --
 ⍝-------------------------------
@@ -1882,6 +1891,17 @@ ind[Spec, Invop]←0
     od← 31
     ⍝Load operand Reg N°0
     0 regin word magnr od
-    inst ←ifetch11
+    inst←ifetch11
     execute inst
+∇
+
+⍝ @Test: SWAB-Register
+∇test_swab_reg
+    ⍝ Load Instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0
+    0 regin (8⍴1),(8⍴0)
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/((8⍴0),(8⍴1)) = regout 0
 ∇

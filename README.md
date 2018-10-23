@@ -13,7 +13,7 @@
 - [x] - 1 - ASH  
 - [x] - 2 - ASHC  
 - [x] - 3 - ASL  
-- [ ] - 1 - ASR  
+- [x] - 1 - ASR  
 - [x] - 2 - ROL  
 - [x] - 3 - ROR  
 - [ ] - 1 - SWAB  

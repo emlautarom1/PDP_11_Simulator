@@ -1115,6 +1115,23 @@ C2: ⍝ instruction address
   signal11NZO r1
 ∇
 
+∇ASR;dest;od;r1
+    ⍝ Reads destination address
+    dest←size11 adr11 Dest
+    ⍝ Gets operand
+    od←read11 dest
+    ⍝ Shift by duplicating first bit and dropping last    
+    r1←od[0],¯1↓od
+    ⍝ Logic shift is the same, but od[0] is replaced with 0
+    dest write11 r1
+    ⍝ Rewrites bits
+    ⍝ Dropped bit is saved in Carry
+    Carry stin ¯1↑od
+    ⍝ Check flags
+    signal11NZ r1
+    Oflo stin (1↑od)≠¯1↑od
+∇
+
 ∇ROR;dest;od1;r1;result
   dest← size11 adr11 Dest
   od1← read11 dest
@@ -1546,4 +1563,15 @@ ind[Spec, Invop]←0
     ∧/((regout 1) = word⍴1)
     ⍝ Carry unchanged
     ∧/(1 0 0 = stout Neg Zero Oflo)
+∇
+
+⍝ @Test: ASR - Register
+∇ test_asr_reg
+    ⍝ Load instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0
+    0 regin (word radixcompr 32)
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    16 = radixcompi (regout 0)
 ∇

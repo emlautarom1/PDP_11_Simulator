@@ -1185,13 +1185,6 @@ C2: ⍝ instruction address
     signal11NZO rl
 ∇
 
-⍝ ∇ASR;dest
-⍝     ⍝ DEC PDP 11 Shift Right
-⍝     dest←byte adr11 Dest
-⍝     
-⍝     signal11NZO <>
-⍝ ∇
-
 ∇DEC;dest;od;value;result;r1
     ⍝ DEC PDP 11 Count Decrement
     dest←size11 adr11 Dest

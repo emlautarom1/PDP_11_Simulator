@@ -1161,6 +1161,14 @@ C2: ⍝ instruction address
 ⍝-- Arithmetical Instructions --
 ⍝-------------------------------
  
+
+∇SXT;r1
+⍝ DEC PDP11 Extend Sign
+    r1← word⍴stout Neg
+    (word adr11 Dest) write11 r1
+    signal11NZ r1
+∇
+
 ∇ADD;dest;ad;addend;augend;sum;rl;cy
 ⍝ ADD de PDP11 para NO PF
 	ad←read11 word adr11 Source
@@ -1213,6 +1221,24 @@ C2: ⍝ instruction address
 	dest←word adr11 Dest
 	augend←radixcompi read11 dest
 	add←addend+augend+1
+	⍝ APL sub
+	r1←word radixcompr add
+	⍝ sub representation as word in r1
+	dest write11 r1
+	⍝ write in dest the representation
+	signal11NZO r1
+	cy←word carryfrom addend,augend,1
+	Carry stin ~cy
+	⍝ Flag checks
+∇
+
+∇SBC
+	ad←read11 word adr11 Source
+	addend←radixcompi ~ad
+	⍝ Interpreted bits as radix complement
+	dest←word adr11 Dest
+	augend←radixcompi read11 dest
+	add←addend+augend+(~cy)
 	⍝ APL sub
 	r1←word radixcompr add
 	⍝ sub representation as word in r1
@@ -1913,3 +1939,22 @@ ind[Spec, Invop]←0
     ∧/((8⍴0),(8⍴1)) = regout 0
 ∇
 
+⍝ @Test: SXT-Register
+∇test_sxt_reg
+    ⍝ Load Instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 1 0 1 1 1 0 0 0 0 0 0
+    ⍝ Set Neg flag to 0
+    Neg stin 0
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/(word⍴0) = regout 0
+    ⍝ Load Instruction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 1 0 1 1 1 0 0 0 0 0 0
+    ⍝ Set Neg flag to 1
+    Neg stin 1
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/(word⍴1) = regout 0
+∇

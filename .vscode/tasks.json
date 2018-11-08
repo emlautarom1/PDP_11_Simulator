@@ -6,7 +6,8 @@
         {
             "label": "Start APL",
             "type": "shell",
-            "command": "apl --noColor -f pdp11.apl"
+            "command": "apl --noColor -f pdp11.apl",
+            "problemMatcher": []
         },
         {
             "label": "Keyboard Setup",

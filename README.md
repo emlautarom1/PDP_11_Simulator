@@ -19,7 +19,7 @@
 - [x] - 1 - SWAB  
 
 **Arithmetic Operations**  
-- [ ] - 1 - SXT  
+- [x] - 1 - SXT  
 - [ ] - 2 - NEG  
 - [x] - 3 - DEC
 - [x] - 1 - ADD

@@ -1957,4 +1957,20 @@ ind[Spec, Invop]←0
     execute inst
     ⍝ Assert equals
     ∧/(word⍴1) = regout 0
+
+⍝ @Test: ASHC-Register
+∇test_ashc_reg ;temp
+    ⍝ Load Instruction 
+    ⍝ Register 1 y 2 for Long Operand that will be shifted
+    ⍝ Register 0 contains long of the shift -32 // 31
+    (word, memadr,magni regout Pc) write11 0 1 1 1 0 1 1 0 1 0 0 0 0 0 0 0
+    ⍝ Load operand into Reg N°2-3 , the lower bits are in the odd register
+    2 regin (word magnr 43968)
+    3 regin (word magnr 43968)
+    ⍝ Load shift size
+    0 regin (word radixcompr 4)
+    inst ←ifetch11
+    execute inst
+    temp← (regout 2), (regout 3)
+    ∧/(11, 12, 0, 10, 11 ,12, 0 ,0) = (8⍴16) ⊤ (magni temp)
 ∇

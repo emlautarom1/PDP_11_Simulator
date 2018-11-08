@@ -1232,22 +1232,22 @@ C2: ⍝ instruction address
 	⍝ Flag checks
 ∇
 
-∇SBC
-	ad←read11 word adr11 Source
-	addend←radixcompi ~ad
-	⍝ Interpreted bits as radix complement
-	dest←word adr11 Dest
+∇SBC;dest;ad;addend;augend;add;r1;cy
+⍝ SBC DEC PDP11
+	dest←size11 adr11 Dest
 	augend←radixcompi read11 dest
-	add←addend+augend+(~cy)
-	⍝ APL sub
-	r1←word radixcompr add
-	⍝ sub representation as word in r1
-	dest write11 r1
+    ad←size11 radixcompr stout Carry
+    addend←radixcompi ~ad
+	⍝ APL sbc
+	result←augend + addend + 1
+    ⍝ Reprensentation
+    r1←size11 radixcompr result
 	⍝ write in dest the representation
-	signal11NZO r1
-	cy←word carryfrom addend,augend,1
-	Carry stin ~cy
+	dest write11 r1
 	⍝ Flag checks
+    signal11NZ r1
+    Oflo stin xmax
+    Carry stin ~size11 carryfrom augend,addend,1
 ∇
 
 ∇DIV;dest;dvnd;dvsr;rem;divisor;dividend;div;r1;r2;cy;divz;ovf
@@ -1278,6 +1278,14 @@ C2: ⍝ instruction address
 ⍝--------------------------------
 ⍝-- Floating-point Instruction --
 ⍝--------------------------------
+
+∇CLRF;dest
+    ⍝ CLRF DEC PDP11(clear floating point)
+    dest←size11fl adr11fl Dest
+    dest write11 size11fl⍴0
+    signal11FNZ 0
+    Carry stin 0
+∇
 
 ∇LDCI;size;operand
   ⍝ LDCI DEC PDP11 (load from integer)
@@ -1718,6 +1726,38 @@ ind[Spec, Invop]←0
     1 0 0 0= stout Neg Zero Oflo Carry
 ∇
 
+⍝ @Test: SBC - inmediate
+∇ test_sbc_inmediate;res
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 1 1 0 0 0 0 0 0 0
+    ⍝ Set Reg0 with A, ex 1
+    0 regin (word radixcompr 1)
+    ⍝ Set initial Carry in 0
+    Carry stin 0
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    res←radixcompi regout 0
+    res←stout Carry,res
+    ⍝ ------------
+    ⍝ Second part
+    ⍝ ------------
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 1 1 0 0 0 0 0 0 0
+    ⍝ Set Reg0 with 0
+    0 regin (word radixcompr 0)
+    ⍝ Set initial Carry in 1
+    Carry stin 1
+    ⍝ Load and execute instrucction from Pc
+    inst←ifetch11
+    execute inst
+    res←radixcompi regout 0,res
+    res←stout Carry,res
+    ⍝ Assert equals
+    ∧/1 ¯1 0 1 = res
+∇
+
 ⍝ @Test: DIV - inmediate
 ∇ test_div_inmediate
     ⍝ Load instrucction
@@ -1770,6 +1810,19 @@ ind[Spec, Invop]←0
    (radixcompi word↑long radixcompr (-2*17)-2*3)= radixcompi regout 0
    (radixcompi word↓long radixcompr (-2*17)-2*3)= radixcompi regout 1
     1 0= stout Oflo Carry
+∇
+
+⍝ @Test: CLRF - clear floating point
+∇test_clrf_reg
+    ⍝ Load instrucction
+    (word, memadr, magni regout Pc) write11 
+    ⍝ Reg0
+    flreg[0;]←(word fl11r ¯1)
+    inst←ifetch11
+    execute inst
+    ⍝ Assert equals
+    ∧/(size11fl⍴0 = flreg[0;])
+    0 1 0 0 = stout (Neg Zero Oflo Carry)
 ∇
 
 ⍝ @Test: LDCI - load float from integer
@@ -1957,6 +2010,7 @@ ind[Spec, Invop]←0
     execute inst
     ⍝ Assert equals
     ∧/(word⍴1) = regout 0
+∇
 
 ⍝ @Test: ASHC-Register
 ∇test_ashc_reg ;temp

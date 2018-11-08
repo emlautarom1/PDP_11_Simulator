@@ -25,7 +25,7 @@
 - [x] - 1 - ADD
 - [ ] - 2 - ADC  
 - [x] - 3 - SUB  
-- [ ] - 1 - SBC  
+- [x] - 1 - SBC  
 - [ ] - 2 - MUL  
 - [x] - 3 - DIV  
 - [ ] - 1 - CMP  

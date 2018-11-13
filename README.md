@@ -20,10 +20,10 @@
 
 **Arithmetic Operations**  
 - [x] - 1 - SXT  
-- [ ] - 2 - NEG  
+- [x] - 2 - NEG  
 - [x] - 3 - DEC
 - [x] - 1 - ADD
-- [ ] - 2 - ADC  
+- [x] - 2 - ADC  
 - [x] - 3 - SUB  
 - [x] - 1 - SBC  
 - [ ] - 2 - MUL  

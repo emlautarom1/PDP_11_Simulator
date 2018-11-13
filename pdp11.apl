@@ -1169,6 +1169,18 @@ C2: ⍝ instruction address
     signal11NZ r1
 ∇
 
+∇NEG;dest;od;rl
+    ⍝ DEC PDP11 Negate
+    dest←size11 adr11 Dest
+    od←radixcompi read11 dest
+    rl←size11 radixcompr -(od)
+    dest write11 rl
+
+    ⍝Mark flags
+    signal11NZO rl
+    Carry stin od≠0
+∇
+
 ∇ADD;dest;ad;addend;augend;sum;rl;cy
 ⍝ ADD de PDP11 para NO PF
 	ad←read11 word adr11 Source
@@ -1188,6 +1200,23 @@ C2: ⍝ instruction address
 	Carry stin cy
 	⍝ Flag checks
 ∇
+
+∇ADC ;dest;addend;augend;sum;rl;cy
+⍝ DEC PDP11 Add Carry
+    addend←stout Carry
+    dest←word adr11 Dest
+    ⍝ Interpreted bits as radix complement
+    augend←radixcompi read11 dest
+    sum←augend+addend
+	rl←size11 radixcompr sum
+
+	⍝ sum representation as word in rl 
+	dest write11 rl
+	⍝ write in dest the representation
+	signal11NZO rl
+	cy←word carryfrom augend,addend
+	Carry stin cy
+∇	
 
 ∇ASH;dest;shift;od;value;result;rl
     ⍝ DEC PDP 11 Shift Arithmetic
@@ -2027,4 +2056,39 @@ ind[Spec, Invop]←0
     execute inst
     temp← (regout 2), (regout 3)
     ∧/(11, 12, 0, 10, 11 ,12, 0 ,0) = (8⍴16) ⊤ (magni temp)
+∇
+
+⍝ @Test: NEG-Register
+∇test_neg_reg ;temp
+    ⍝ Load instruction, register mode, reg N°0
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 1 0 0 0 0 0 0 0 0
+    
+    ⍝ Load operand
+    temp←127
+    0 regin (word magnr temp)
+    inst←ifetch11
+    execute inst
+
+    
+    ⍝Check flags
+    
+    ( (-temp)<0 ) = (stout Neg) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (1=(stout Carry) ) ∧ (-temp) = (radixcompi regout 0)
+∇
+
+
+∇test_adc_reg ;od1;od2
+    ⍝ Load instruction, register mode reg N°0
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 1 0 1 0 0 0 0 0 0
+    ⍝ Load operand
+    temp ← 127
+    0 regin (word magnr temp)
+    Carry stin 1
+
+    inst ← ifetch11
+    execute inst
+
+    temp←temp+ stout Carry
+
+    ( (temp)<0 ) = (stout Neg) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (0 = (stout Carry) ) ∧ (temp) = (radixcompi regout 0)
+    
 ∇

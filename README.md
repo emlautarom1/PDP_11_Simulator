@@ -26,10 +26,10 @@
 - [x] - 2 - ADC  
 - [x] - 3 - SUB  
 - [x] - 1 - SBC  
-- [ ] - 2 - MUL  
+- [x] - 2 - MUL  
 - [x] - 3 - DIV  
-- [ ] - 1 - CMP  
-- [ ] - 2 - TEST  
+- [x] - 1 - CMP  
+- [x] - 2 - TEST  
  
  **Float Operations**  
 - [ ] - 1 - CLRF  

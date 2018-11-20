@@ -1304,6 +1304,36 @@ C2: ⍝ instruction address
     Carry stin divz
 ∇
 
+∇MUL ;dest;multplier;multiplicand;product;rl
+
+    ⍝ DEC PDP11 Multiply
+    
+    dest ← fld Source[R]
+    multiplier← radixcompi read11 word adr11 Dest
+    multiplicand← radixcompi reg[dest;]
+
+    product ← multiplicand × multiplier
+    
+    rl ← long radixcompr product
+    
+    ⍝ Set high order product 
+    dest regin word ↑ rl
+
+    ⍝ Set low order product
+    (odd11 dest) regin word ↓ rl
+    
+    ⍝ Set flags
+    signal11NZ rl
+    Carry stin ∨/ rl[0] ≠ word ↑ rl
+∇
+
+∇ TST ;rl
+    ⍝ DEC PDP11 Test
+    rl ← read11 size11 adr11 Dest
+    signal11NZ rl
+    Carry stin 0
+∇
+
 ⍝--------------------------------
 ⍝-- Floating-point Instruction --
 ⍝--------------------------------
@@ -2072,7 +2102,7 @@ ind[Spec, Invop]←0
     
     ⍝Check flags
     
-    ( (-temp)<0 ) = (stout Neg) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (1=(stout Carry) ) ∧ (-temp) = (radixcompi regout 0)
+    ( ( (-temp)<0 ) = (stout Neg) ) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (1=(stout Carry) )
 ∇
 
 
@@ -2089,6 +2119,59 @@ ind[Spec, Invop]←0
 
     temp←temp+ stout Carry
 
-    ( (temp)<0 ) = (stout Neg) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (0 = (stout Carry) ) ∧ (temp) = (radixcompi regout 0)
+    ⍝ Check Flags
+    
+    ( ( (temp)<0 ) = (stout Neg) )  ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (0 = (stout Carry) )
     
 ∇
+
+
+∇test_MUL_reg ;multiplicand;multiplier;temp
+
+    ⍝ Load instruction, multiplier in Reg N°0 and multiplicand in Reg N°1
+
+    (word, memadr, magni regout Pc) write11 0 1 1 1 0 0 0 0 1 0 0 0 0 0 0 0
+
+    ⍝ Load multiplier
+
+    2 regin (word radixcompr 10)
+
+    ⍝ Load multiplicand
+
+    0 regin (word radixcompr 100)
+
+    temp ← 10×100
+
+    inst ← ifetch11
+    execute inst
+
+    ⍝ Check Flags
+
+    ( ( (temp)<0 ) = (stout Neg) ) ∧  ( (temp = 0) = (stout Zero) ) ∧ ( 0 = (stout Oflo) ) ∧ ( 0 = (stout Carry) ) 
+    
+∇
+
+
+∇test_TST_reg ;od1
+    
+    ⍝ Load instruction, register mode reg N°0
+    (word, memadr, magni regout Pc) write11 0 0 0 0 1 0 1 1 1 1 0 0 0 0 0 0
+
+    ⍝ Load operand
+    temp ← 127
+    0 regin (word magnr temp)
+
+    ⍝ Set flags to check if they are cleared after the execute
+    Carry stin 1
+    Neg stin 1
+    Zero stin 1
+    Oflo stin 1
+
+    inst←ifetch11
+    execute inst
+    
+    ⍝ Check Flags
+    ( ( (temp)<0 ) = (stout Neg) ) ∧ ( (temp = 0) = (stout Zero) ) ∧ ( 0=(stout Oflo) )  ∧ (0 = (stout Carry) )
+∇
+
+
